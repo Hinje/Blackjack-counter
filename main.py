@@ -20,5 +20,6 @@ def load_strategy_table():
 
 if __name__ == "__main__":
     hand_data = load_strategy_table()
+    print(hand_data[0])
 
 
