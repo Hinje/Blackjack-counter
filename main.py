@@ -11,7 +11,14 @@ class Card:
     def __init__(self, name, suit):
         self.name = name
         self.suit = suit
-        self.value = self.values[name]
+        self.ace_low = False
+
+    @property
+    def value(self, ace_low=False):
+        value = self.values[self.name]
+        if self.name == "A" and self.ace_low:
+            value = 1
+        return value
 
     def showcard(self):
         ...
@@ -26,15 +33,33 @@ class CardSet:
 
     def __init__(self):
         self.cards = []
-
+        self.total = 0
     def add_card(self, card):
         self.cards.append(card)
 
-    def calc_value(self):
-        # TODO must account for Aces
-        return sum(card.value for card in self.cards)
+    @property
+    def length(self):
+        return len(self.cards)
+
+    @property
+    def value(self):
+        total = sum(cd.value for cd in self.cards)
+        # Switch aces to have value 1 if necessary to get total value below 21
+        while total > 21 and any((card := cd) for cd in self.cards if cd.name == 'A' and not cd.ace_low):
+            card.ace_low = True
+            total = sum(cd.value for cd in self.cards)
+        return total
 
 
+
+
+
+
+
+    def check_ace(self):
+        ...
+
+        # if self.total>21 and
 class BlackJackDeck(CardSet):
 
     def __init__(self):
@@ -76,5 +101,8 @@ def load_strategy_table():
 
 
 if __name__ == "__main__":
-    hand_data = load_strategy_table()
-    print(hand_data[0])
+    my_cards = CardSet()
+    my_cards.add_card(Card('A', "♠"))
+    my_cards.add_card(Card('8', "♥"))
+    my_cards.add_card(Card('9', "♥"))
+    my_cards.add_card(Card('T', "♥"))
