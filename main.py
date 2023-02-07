@@ -1,12 +1,10 @@
-# coding 😎
-
-
+import random
 import csv
 
 
 class Card:
     values = {"A": 11, "K": 10, "Q": 10, "J": 10, "T": 10, "9": 9,
-             "8": 8, "7": 7, "6": 6, "5": 5, "4": 4, "3": 3, "2": 2}
+              "8": 8, "7": 7, "6": 6, "5": 5, "4": 4, "3": 3, "2": 2}
 
     def __init__(self, name, suit):
         self.name = name
@@ -33,7 +31,7 @@ class CardSet:
 
     def __init__(self):
         self.cards = []
-        self.total = 0
+
     def add_card(self, card):
         self.cards.append(card)
 
@@ -51,29 +49,49 @@ class CardSet:
         return total
 
 
-
-
-
-
-
-    def check_ace(self):
-        ...
-
-        # if self.total>21 and
 class BlackJackDeck(CardSet):
 
     def __init__(self):
-        self.card_list = []
+        super().__init__()
         self.create_deck()
+        self.shuffle()
 
     def create_deck(self):
-        self.card_list = [Card(nm, st)
-                          for nm in self.names
-                          for st in self.suits]
+        self.cards = [Card(nm, st)
+                      for nm in self.names
+                      for st in self.suits]
 
-    # for i in range(len(names)):
-    # for suit in suits:
-    # self.card_list.append
+    def shuffle(self):
+        random.shuffle(self.cards)
+
+    def take_top(self):
+        return self.cards.pop()
+
+    def deal_cards(self, num_players):
+        # to-do - dealer_hand is an instance of DealerHand other hands are instances of Hand (or PlayerHand)
+
+        hands = [Hand() for _ in range(num_players)]
+        for _ in range(2):
+            for hand in hands:
+                hand.cards.append(self.take_top())
+        return hands
+
+
+class Hand(CardSet):
+
+    def __init__(self):
+        super().__init__()
+        self.stood = False
+
+    def hit(self, deck):
+        self.add_card(deck.take_top())
+
+    def stand(self):
+        self.stood = True
+
+    @property
+    def bust(self):
+        return self.value > 21
 
 
 class Bot:
@@ -97,12 +115,45 @@ def load_strategy_table():
         my_reader = csv.reader(csvfile, delimiter=",")
         for row in my_reader:
             my_data.append(row)
-        return (my_data)
+        return my_data
+
+
+class Game:
+    def __init__(self, num_players):
+        self.num_players = num_players
+        self.deck = BlackJackDeck()
+        self.dealer_hand, *self.player_hands = self.deck.deal_cards(self.num_players)
+        self.current_player_number = 0
+        # self.current_player_hand = self.player_hands[0]
+
+    def next_player(self):
+        self.current_player_number = self.current_player_number + 1
+
+    def player_action(self, decision):
+        current_player_hand = self.player_hands[self.current_player_number]
+        if decision == "hit":
+            current_player_hand.hit(self.deck)
+        elif decision == "stand":
+            current_player_hand.stand()
+
+        if current_player_hand.bust or current_player_hand.stood:
+            self.next_player()
+
+        if self.current_player_number == self.num_players:
+            self.dealer_turn()
+
+    def dealer_turn(self):
+        ...
 
 
 if __name__ == "__main__":
-    my_cards = CardSet()
-    my_cards.add_card(Card('A', "♠"))
-    my_cards.add_card(Card('8', "♥"))
-    my_cards.add_card(Card('9', "♥"))
-    my_cards.add_card(Card('T', "♥"))
+    # my_cards = CardSet()
+    # my_cards.add_card(Card('A', "♠"))
+    # my_cards.add_card(Card('8', "♥"))
+    # my_cards.add_card(Card('9', "♥"))
+    # my_cards.add_card(Card('T', "♥"))
+
+    # my_deck = BlackJackDeck()
+    # dealer_hand, *player_hands = my_deck.deal_cards(3)
+    my_game = Game(4)
+# wiki check for when betting happens, how player rotation works.
