@@ -67,10 +67,12 @@ class BlackJackDeck(CardSet):
     def take_top(self):
         return self.cards.pop()
 
-    def deal_cards(self, num_players):
+    def deal_cards(self, num_players, include_dealer=True):
         # to-do - dealer_hand is an instance of DealerHand other hands are instances of Hand (or PlayerHand)
 
         hands = [Hand() for _ in range(num_players)]
+        if include_dealer:
+            hands = [DealerHand()] + hands
         for _ in range(2):
             for hand in hands:
                 hand.cards.append(self.take_top())
@@ -92,6 +94,14 @@ class Hand(CardSet):
     @property
     def bust(self):
         return self.value > 21
+
+
+class DealerHand(Hand):
+    def dealer_action(self, limit, deck):
+        while self.value <= limit:
+            self.hit(deck)
+        if not self.bust:
+            self.stand()
 
 
 class Bot:
@@ -122,12 +132,19 @@ class Game:
     def __init__(self, num_players):
         self.num_players = num_players
         self.deck = BlackJackDeck()
-        self.dealer_hand, *self.player_hands = self.deck.deal_cards(self.num_players)
+        self.dealer_hand, *self.player_hands = self.deck.deal_cards(self.num_players, include_dealer=True)
         self.current_player_number = 0
         # self.current_player_hand = self.player_hands[0]
 
     def next_player(self):
         self.current_player_number = self.current_player_number + 1
+
+    # def dealer_turn(self, decision):
+    #     current_player_hand = self.dealer_hand
+    #     if decision == "hit":
+    #         current_player_hand.hit(self.deck)
+    #     elif decision == "stand":
+    #         current_player_hand.stand()
 
     def player_action(self, decision):
         current_player_hand = self.player_hands[self.current_player_number]
@@ -139,11 +156,8 @@ class Game:
         if current_player_hand.bust or current_player_hand.stood:
             self.next_player()
 
-        if self.current_player_number == self.num_players:
-            self.dealer_turn()
-
-    def dealer_turn(self):
-        ...
+        if self.current_player_number > self.num_players:
+            self.dealer_hand.dealer_action(17, self.deck)
 
 
 if __name__ == "__main__":
