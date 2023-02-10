@@ -18,7 +18,7 @@ class Card:
             value = 1
         return value
 
-    def showcard(self):
+    def show_card(self):
         ...
 
     def __str__(self):
@@ -139,12 +139,9 @@ class Game:
     def next_player(self):
         self.current_player_number = self.current_player_number + 1
 
-    # def dealer_turn(self, decision):
-    #     current_player_hand = self.dealer_hand
-    #     if decision == "hit":
-    #         current_player_hand.hit(self.deck)
-    #     elif decision == "stand":
-    #         current_player_hand.stand()
+    def find_limit(self):
+        return max(player.value for player in self.player_hands
+                   if not player.bust)
 
     def player_action(self, decision):
         current_player_hand = self.player_hands[self.current_player_number]
@@ -156,8 +153,8 @@ class Game:
         if current_player_hand.bust or current_player_hand.stood:
             self.next_player()
 
-        if self.current_player_number > self.num_players:
-            self.dealer_hand.dealer_action(17, self.deck)
+        if self.current_player_number == self.num_players:
+            self.dealer_hand.dealer_action(self.find_limit(), self.deck)
 
 
 if __name__ == "__main__":
