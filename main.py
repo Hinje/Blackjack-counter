@@ -18,8 +18,7 @@ class Card:
             value = 1
         return value
 
-    def show_card(self):
-        ...
+
 
     def __str__(self):
         return f'{self.suit}{self.name}'
@@ -86,7 +85,9 @@ class Hand(CardSet):
         self.stood = False
 
     def hit(self, deck):
-        self.add_card(deck.take_top())
+        new_card = deck.take_top()
+        self.add_card(new_card)
+        return new_card
 
     def stand(self):
         self.stood = True
@@ -134,7 +135,14 @@ class Game:
         self.deck = BlackJackDeck()
         self.dealer_hand, *self.player_hands = self.deck.deal_cards(self.num_players, include_dealer=True)
         self.current_player_number = 0
+        self.players = []
         # self.current_player_hand = self.player_hands[0]
+
+    def get_players(self):
+        for i in range(self.num_players):
+            name = input(f"Enter the name of player {i + 1}: ")
+            self.players.append(name)
+        return self.players, self.num_players
 
     def next_player(self):
         self.current_player_number = self.current_player_number + 1
@@ -146,8 +154,12 @@ class Game:
     def player_action(self, decision):
         current_player_hand = self.player_hands[self.current_player_number]
         if decision == "hit":
-            current_player_hand.hit(self.deck)
+            new_card = current_player_hand.hit(self.deck)
+            print(f"Card added to your hand: {new_card}, your hand total is now {current_player_hand.value}")
         elif decision == "stand":
+            current_player_hand.stand()
+
+        if current_player_hand.value == 21:
             current_player_hand.stand()
 
         if current_player_hand.bust or current_player_hand.stood:
@@ -155,6 +167,26 @@ class Game:
 
         if self.current_player_number == self.num_players:
             self.dealer_hand.dealer_action(self.find_limit(), self.deck)
+
+    def play_text(self):
+        self.get_players()
+
+        for player_num, player_hand in enumerate(self.player_hands):
+            print(f"\nPlayer {player_num + 1}:{self.players[self.current_player_number]}'s hand:")
+            for card in player_hand.cards:
+                print(card)
+
+            while not player_hand.stood and not player_hand.bust:
+                decision = input("Do you want to hit or stand? ")
+                self.player_action(decision)
+
+            if player_hand.bust:
+                print("Bust!")
+        print("\nDealer's hand:")
+        for card in self.dealer_hand.cards:
+            print(card)
+        self.dealer_hand.dealer_action(self.find_limit(), self.deck)
+        print(f"\nDealer's final hand value: {self.dealer_hand.value}")
 
 
 if __name__ == "__main__":
@@ -166,5 +198,6 @@ if __name__ == "__main__":
 
     # my_deck = BlackJackDeck()
     # dealer_hand, *player_hands = my_deck.deal_cards(3)
-    my_game = Game(4)
+    my_game = Game(int(input(f"Welcome to Bruno's Blackjack! \nHow many players would like to play?")))
+    my_game.play_text()
 # wiki check for when betting happens, how player rotation works.
