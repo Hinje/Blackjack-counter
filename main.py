@@ -56,9 +56,12 @@ class BlackJackDeck(CardSet):
         self.shuffle()
 
     def create_deck(self):
-        self.cards = [Card(nm, st)
-                      for nm in self.names
-                      for st in self.suits]
+        count = 0
+        while count != 7:
+            self.cards = [Card(nm, st)
+                          for nm in self.names
+                          for st in self.suits]
+            count += 1
 
     def shuffle(self):
         random.shuffle(self.cards)
